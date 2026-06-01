@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CoinCorp — 가상 경제 시뮬레이션</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a26;
+      --border: #2a2a3a;
+      --accent: #00ff88;
+      --accent2: #ff3366;
+      --accent3: #ffcc00;
+      --text: #e8e8f0;
+      --text2: #888899;
+      --red: #ff3366;
+      --green: #00ff88;
+      --yellow: #ffcc00;
+      --blue: #4488ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ===== AUTH ===== */
+    #auth-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 50% 0%, #00ff8820 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 80%, #ff336615 0%, transparent 50%),
+                  var(--bg);
+    }
+    .auth-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 72px;
+      letter-spacing: 8px;
+      color: var(--accent);
+      text-shadow: 0 0 40px #00ff8860;
+      margin-bottom: 8px;
+    }
+    .auth-sub {
+      font-size: 12px;
+      letter-spacing: 4px;
+      color: var(--text2);
+      text-transform: uppercase;
+      margin-bottom: 48px;
+    }
+    .auth-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 380px;
+      box-shadow: 0 0 80px #00ff8810;
+    }
+    .auth-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .auth-tab {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text2);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      padding: 10px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .auth-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--text2);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .form-group input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: var(--accent); }
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 14px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+    .btn:hover { background: #00ffaa; transform: translateY(-1px); box-shadow: 0 4px 20px #00ff8840; }
+    .btn-red { background: var(--red); color: #fff; }
+    .btn-red:hover { background: #ff5580; box-shadow: 0 4px 20px #ff336640; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+    .btn-sm { width: auto; padding: 8px 16px; font-size: 12px; }
+    .btn-yellow { background: var(--yellow); color: #000; }
+    .btn-blue { background: var(--blue); color: #fff; }
+    .auth-msg { font-size: 12px; color: var(--red); margin-top: 12px; text-align: center; }
+
+    /* ===== SETUP ===== */
+    #setup-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      background: radial-gradient(ellipse at 20% 50%, #4488ff10 0%, transparent 50%), var(--bg);
+    }
+    .setup-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      width: 520px;
+      max-width: 100%;
+    }
+    .setup-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      letter-spacing: 4px;
+      color: var(--accent);
+      margin-bottom: 24px;
+    }
+    .sector-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .sector-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text2);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 12px;
+      padding: 10px 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .sector-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .sector-btn.selected { background: #00ff8820; border-color: var(--accent); color: var(--accent); }
+
+    /* ===== MAIN APP ===== */
+    #app-screen { display: none; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .topbar-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 28px;
+      letter-spacing: 4px;
+      color: var(--accent);
+    }
+    .topbar-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text2);
+    }
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr 300px;
+      gap: 0;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* LEFT SIDEBAR */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 20px;
+    }
+    .sidebar-section { margin-bottom: 28px; }
+    .sidebar-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--text2);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .my-company-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .company-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 20px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .company-sector {
+      font-size: 11px;
+      color: var(--text2);
+      margin-bottom: 12px;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+    .stat-label { color: var(--text2); }
+    .stat-val {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text);
+      font-weight: 700;
+    }
+    .stat-val.green { color: var(--green); }
+    .stat-val.red { color: var(--red); }
+    .stat-val.yellow { color: var(--yellow); }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text2);
+      transition: all 0.2s;
+      margin-bottom: 4px;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: #00ff8815; color: var(--accent); }
+    .nav-icon { font-size: 16px; }
+
+    /* CENTER CONTENT */
+    .content { padding: 24px; overflow-y: auto; }
+
+    /* RIGHT SIDEBAR */
+    .right-sidebar {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 2px;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ===== COIN PRICE CHART ===== */
+    .price-display {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .price-big {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 48px;
+      letter-spacing: 2px;
+      color: var(--accent);
+    }
+    .price-change {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .price-change.up { background: #00ff8820; color: var(--green); }
+    .price-change.down { background: #ff336620; color: var(--red); }
+
+    canvas#priceChart {
+      width: 100% !important;
+      height: 120px !important;
+      border-radius: 8px;
+    }
+
+    /* ===== SELL PANEL ===== */
+    .sell-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .sell-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .sell-box-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; letter-spacing: 1px; }
+    .sell-box-val {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      color: var(--accent3);
+    }
+
+    /* ===== COMPANIES LIST ===== */
+    .company-list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      transition: border-color 0.2s;
+      cursor: pointer;
+    }
+    .company-list-item:hover { border-color: var(--accent); }
+    .company-list-item.rival { border-left: 3px solid var(--red); }
+    .company-list-item.partner { border-left: 3px solid var(--green); }
+    .cli-name { font-size: 14px; font-weight: 700; }
+    .cli-sector { font-size: 11px; color: var(--text2); }
+    .cli-price {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    /* ===== EVENTS ===== */
+    .event-item {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .event-item.bad { background: #ff336615; border-left: 3px solid var(--red); }
+    .event-item.good { background: #00ff8815; border-left: 3px solid var(--green); }
+    .event-item.neutral { background: #4488ff15; border-left: 3px solid var(--blue); }
+    .event-item.warning { background: #ffcc0015; border-left: 3px solid var(--yellow); }
+    .event-time { font-size: 10px; color: var(--text2); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #00000090;
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      width: 440px;
+      max-width: 90vw;
+      box-shadow: 0 20px 60px #000a;
+    }
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 24px;
+      letter-spacing: 3px;
+      margin-bottom: 20px;
+      color: var(--accent);
+    }
+    .modal-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* ===== PATENT LIST ===== */
+    .patent-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    .patent-owner { font-size: 11px; color: var(--text2); }
+
+    /* ===== LAWSUIT ===== */
+    .lawsuit-badge {
+      background: #ff336630;
+      border: 1px solid var(--red);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: var(--red);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ===== TABS ===== */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text2);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* INPUT */
+    input[type=range] { width: 100%; accent-color: var(--accent); }
+    select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px;
+      padding: 10px 12px;
+      outline: none;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .ticker-bar {
+      background: #00ff8810;
+      border-top: 1px solid #00ff8830;
+      padding: 6px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text2);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .ticker-inner { display: inline-block; animation: ticker 20s linear infinite; }
+    @keyframes ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      letter-spacing: 1px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .badge-green { background: #00ff8820; color: var(--green); }
+    .badge-red { background: #ff336620; color: var(--red); }
+    .badge-yellow { background: #ffcc0020; color: var(--yellow); }
+    .badge-blue { background: #4488ff20; color: var(--blue); }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    .text-sm { font-size: 12px; color: var(--text2); }
+    .mt8 { margin-top: 8px; }
+    .mt16 { margin-top: 16px; }
+
+    #page-market, #page-companies, #page-patents, #page-contracts, #page-lawsuits {
+      display: none;
+    }
+    #page-home { display: block; }
+
+    @media (max-width: 900px) {
+      .main-layout { grid-template-columns: 1fr; }
+      .sidebar, .right-sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="auth-screen">
+  <div class="auth-logo">COINCORP</div>
+  <div class="auth-sub">가상 경제 시뮬레이션</div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">로그인</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">회원가입</button>
+    </div>
+    <div id="tab-login">
+      <div class="form-group">
+        <label>이메일</label>
+        <input type="email" id="login-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="login-pw" placeholder="••••••••">
+      </div>
+      <button class="btn" onclick="doLogin()">로그인</button>
+      <div class="auth-msg" id="login-msg"></div>
+    </div>
+    <div id="tab-signup" style="display:none">
+      <div class="form-group">
+        <label>이메일</label>
+        <input type="email" id="su-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label>닉네임</label>
+        <input type="text" id="su-nick" placeholder="닉네임">
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="su-pw" placeholder="6자 이상">
+      </div>
+      <button class="btn" onclick="doSignup()">가입하기</button>
+      <div class="auth-msg" id="signup-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-title">🏢 회사 설립</div>
+    <div class="form-group">
+      <label>회사명</label>
+      <input type="text" id="company-name-input" placeholder="내 회사 이름">
+    </div>
+    <div class="form-group">
+      <label>코인명</label>
+      <input type="text" id="coin-name-input" placeholder="예: KIMCOIN">
+    </div>
+    <div class="form-group">
+      <label>분야 선택</label>
+      <div class="sector-grid" id="sector-grid"></div>
+    </div>
+    <button class="btn" onclick="doSetup()">회사 설립하기 🚀</button>
+    <div class="auth-msg" id="setup-msg"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="topbar-logo">COINCORP</div>
+    <div class="topbar-date" id="topbar-date">Year 1, Day 1</div>
+    <div class="topbar-user">
+      <span id="topbar-nick">—</span>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="ticker-bar">
+    <div class="ticker-inner" id="ticker-inner">📈 실시간 시장 데이터 로딩중...</div>
+  </div>
+
+  <div class="main-layout">
+    <!-- LEFT SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">내 회사</div>
+        <div class="my-company-card" id="my-company-card">
+          <div class="company-name" id="sc-name">—</div>
+          <div class="company-sector" id="sc-sector">—</div>
+          <hr class="divider">
+          <div class="stat-row"><span class="stat-label">💰 잔고</span><span class="stat-val yellow" id="sc-balance">0</span></div>
+          <div class="stat-row"><span class="stat-label">📦 판매량</span><span class="stat-val" id="sc-sales">0</span></div>
+          <div class="stat-row"><span class="stat-label">🪙 코인가</span><span class="stat-val green" id="sc-coinprice">100</span></div>
+          <div class="stat-row"><span class="stat-label">📊 보유량</span><span class="stat-val" id="sc-holdings">1000</span></div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">메뉴</div>
+        <div class="nav-item active" onclick="showPage('home')" id="nav-home">
+          <span class="nav-icon">🏠</span> 대시보드
+        </div>
+        <div class="nav-item" onclick="showPage('market')" id="nav-market">
+          <span class="nav-icon">📈</span> 시장
+        </div>
+        <div class="nav-item" onclick="showPage('companies')" id="nav-companies">
+          <span class="nav-icon">🏢</span> 기업 목록
+        </div>
+        <div class="nav-item" onclick="showPage('patents')" id="nav-patents">
+          <span class="nav-icon">📋</span> 특허청
+        </div>
+        <div class="nav-item" onclick="showPage('contracts')" id="nav-contracts">
+          <span class="nav-icon">🤝</span> 계약
+        </div>
+        <div class="nav-item" onclick="showPage('lawsuits')" id="nav-lawsuits">
+          <span class="nav-icon">⚖️</span> 소송
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER CONTENT -->
+    <div class="content">
+
+      <!-- HOME PAGE -->
+      <div id="page-home">
+        <div class="card">
+          <div class="card-title">🪙 <span id="coin-name-display">MY COIN</span></div>
+          <div class="price-display">
+            <div class="price-big" id="coin-price-big">100</div>
+            <div class="price-change up" id="coin-price-change">+0.00%</div>
+          </div>
+          <canvas id="priceChart"></canvas>
+        </div>
+
+        <div class="sell-panel">
+          <div class="sell-box">
+            <div class="sell-box-label">📦 총 판매량</div>
+            <div class="sell-box-val" id="total-sales-disp">0</div>
+          </div>
+          <div class="sell-box">
+            <div class="sell-box-label">💸 총 수익</div>
+            <div class="sell-box-val" id="total-revenue-disp">₩0</div>
+          </div>
+          <div class="sell-box">
+            <div class="sell-box-label">📊 보유 코인</div>
+            <div class="sell-box-val" id="holdings-disp">1000</div>
+          </div>
+          <div class="sell-box">
+            <div class="sell-box-label">🏆 시장 순위</div>
+            <div class="sell-box-val" id="rank-disp">#—</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">📦 물건 판매</div>
+          <div class="form-group">
+            <label>판매 수량</label>
+            <input type="range" id="sell-qty" min="1" max="500" value="10" oninput="updateSellPreview()">
+            <div class="stat-row mt8">
+              <span class="stat-label">수량: <span id="sell-qty-disp">10</span>개</span>
+              <span class="stat-val yellow">예상 수익: <span id="sell-preview">₩0</span></span>
+            </div>
+          </div>
+          <button class="btn" onclick="doSell()">판매하기 🛒</button>
+        </div>
+
+        <div class="card" id="collab-sell-card" style="display:none">
+          <div class="card-title">🤝 콜라보 판매</div>
+          <div id="collab-sell-list"></div>
+        </div>
+      </div>
+
+      <!-- MARKET PAGE -->
+      <div id="page-market">
+        <div class="card">
+          <div class="card-title">📈 전체 시장</div>
+          <div id="market-list"></div>
+        </div>
+      </div>
+
+      <!-- COMPANIES PAGE -->
+      <div id="page-companies">
+        <div class="card">
+          <div class="card-title">🏢 기업 목록</div>
+          <div id="companies-list"></div>
+        </div>
+      </div>
+
+      <!-- PATENTS PAGE -->
+      <div id="page-patents">
+        <div class="card">
+          <div class="card-title">📋 특허청</div>
+          <div class="form-group">
+            <label>특허 등록 (분야)</label>
+            <select id="patent-sector-select"></select>
+            <button class="btn btn-yellow btn-sm mt8" onclick="doRegisterPatent()" style="width:auto;padding:10px 20px">특허 등록 신청 (₩50,000)</button>
+          </div>
+          <hr class="divider">
+          <div id="patent-list"></div>
+        </div>
+      </div>
+
+      <!-- CONTRACTS PAGE -->
+      <div id="page-contracts">
+        <div class="card">
+          <div class="card-title">🤝 계약 현황</div>
+          <div id="contracts-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">➕ 계약 제안</div>
+          <select id="contract-target-select"></select>
+          <select id="contract-type-select">
+            <option value="collab">콜라보 (공동 상품 판매 + 수익 증가)</option>
+            <option value="supply">공급 계약 (안정적 판매량 보장)</option>
+          </select>
+          <button class="btn btn-blue" onclick="doSendContract()">계약 제안 보내기</button>
+        </div>
+        <div class="card">
+          <div class="card-title">📬 받은 계약 제안</div>
+          <div id="pending-contracts"></div>
+        </div>
+      </div>
+
+      <!-- LAWSUITS PAGE -->
+      <div id="page-lawsuits">
+        <div class="card">
+          <div class="card-title">⚖️ 소송 목록</div>
+          <div id="lawsuits-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🚨 소송 제기</div>
+          <p class="text-sm" style="margin-bottom:12px">특허를 침해한 기업을 고소할 수 있습니다. 승소 시 상대방 잔고의 30%를 받습니다.</p>
+          <select id="lawsuit-target-select"></select>
+          <select id="lawsuit-patent-select"></select>
+          <button class="btn btn-red" onclick="doFileLawsuit()">소송 제기 ⚖️</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="right-sidebar">
+      <div class="sidebar-label">📰 이벤트 로그</div>
+      <div id="event-log"></div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPANY DETAIL MODAL -->
+<div class="modal-overlay" id="company-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-company-name">회사명</div>
+    <div id="modal-company-body"></div>
+    <div class="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('company-modal')">닫기</button>
+      <button class="btn btn-sm" id="modal-contract-btn" onclick="modalSendContract()">계약 제안</button>
+      <button class="btn btn-red btn-sm" id="modal-lawsuit-btn" onclick="modalFileLawsuit()">소송 제기</button>
+    </div>
+  </div>
+</div>
+
+<!-- LAWSUIT RESULT MODAL -->
+<div class="modal-overlay" id="lawsuit-result-modal">
+  <div class="modal">
+    <div class="modal-title" id="lr-title">소송 결과</div>
+    <div id="lr-body"></div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('lawsuit-result-modal')">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase + App Scripts -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, set, get, onValue, update, push, remove }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBjDStORXyndC4DfiQWKkcUTQht2vw1VlM",
+  authDomain: "coin-49a29.firebaseapp.com",
+  projectId: "coin-49a29",
+  storageBucket: "coin-49a29.firebasestorage.app",
+  messagingSenderId: "106219083457",
+  appId: "1:106219083457:web:50ff6a6ac0c8589d692640",
+  databaseURL: "https://coin-49a29-default-rtdb.firebaseio.com"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+// ===== CONSTANTS =====
+const SECTORS = [
+  "🍔 식품/외식", "💻 IT/소프트웨어", "👗 패션/의류", "🏥 의료/제약",
+  "🚗 자동차", "🏗️ 건설/부동산", "🎮 게임/엔터", "⚡ 에너지",
+  "✈️ 항공/물류", "🌿 농업/식품", "💄 뷰티/화장품", "🎓 교육",
+  "🏦 금융/보험", "🛒 유통/이커머스", "🔬 연구/과학", "🎵 음악/미디어",
+  "🍺 주류/음료", "🐾 펫/동물", "🌊 해양/수산", "🧪 화학/소재"
+];
+
+const EVENTS = [
+  { type: "bad", msg: "🧹 위생조사! {target}에 위생 불합격 판정. 판매 일시 정지!", effect: "sales_halt" },
+  { type: "bad", msg: "📋 세무조사! {target} 세금 추징으로 잔고 20% 감소!", effect: "tax" },
+  { type: "bad", msg: "💥 제품 리콜! {target} 이미지 하락, 코인 15% 폭락!", effect: "recall" },
+  { type: "good", msg: "🌟 {target} 대박 계약 체결! 판매량 폭증!", effect: "boom" },
+  { type: "good", msg: "📰 {target} 언론 주목! 코인 20% 급등!", effect: "press" },
+  { type: "warning", msg: "⚡ 시장 불안! 모든 코인 소폭 하락", effect: "market_down" },
+  { type: "good", msg: "🎉 경기 호황! 전체 판매량 상승", effect: "market_up" },
+  { type: "bad", msg: "🔥 {target} 내부 비리 폭로! 코인 30% 폭락!", effect: "scandal" },
+  { type: "warning", msg: "🌪️ 원자재 파동! {target} 분야 전체 타격", effect: "sector_crisis" },
+  { type: "good", msg: "🏆 {target} 수출 대박! 해외 진출 성공으로 폭등!", effect: "export" },
+];
+
+// ===== STATE =====
+let currentUser = null;
+let myCompany = null;
+let allCompanies = {};
+let allPatents = {};
+let allContracts = {};
+let allLawsuits = {};
+let priceHistory = [];
+let gameDay = 1;
+let haltSales = false;
+let selectedModalCompanyId = null;
+
+// ===== CHART =====
+let chartCtx, chartData = [];
+function initChart() {
+  const canvas = document.getElementById("priceChart");
+  chartCtx = canvas.getContext("2d");
+  chartData = Array(30).fill(100);
+  drawChart();
+}
+function drawChart() {
+  if (!chartCtx) return;
+  const w = chartCtx.canvas.offsetWidth, h = 120;
+  chartCtx.canvas.width = w; chartCtx.canvas.height = h;
+  chartCtx.clearRect(0, 0, w, h);
+  const min = Math.min(...chartData) * 0.95, max = Math.max(...chartData) * 1.05;
+  const pts = chartData.map((v, i) => ({
+    x: (i / (chartData.length - 1)) * w,
+    y: h - ((v - min) / (max - min)) * (h - 10) - 5
+  }));
+  // gradient fill
+  const grad = chartCtx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, "#00ff8830");
+  grad.addColorStop(1, "#00ff8800");
+  chartCtx.beginPath();
+  chartCtx.moveTo(pts[0].x, h);
+  pts.forEach(p => chartCtx.lineTo(p.x, p.y));
+  chartCtx.lineTo(pts[pts.length-1].x, h);
+  chartCtx.fillStyle = grad;
+  chartCtx.fill();
+  // line
+  chartCtx.beginPath();
+  pts.forEach((p, i) => i === 0 ? chartCtx.moveTo(p.x, p.y) : chartCtx.lineTo(p.x, p.y));
+  chartCtx.strokeStyle = "#00ff88";
+  chartCtx.lineWidth = 2;
+  chartCtx.stroke();
+}
+
+// ===== AUTH =====
+window.switchAuthTab = (tab) => {
+  document.querySelectorAll(".auth-tab").forEach((t, i) => t.classList.toggle("active", (i===0) === (tab==="login")));
+  document.getElementById("tab-login").style.display = tab === "login" ? "" : "none";
+  document.getElementById("tab-signup").style.display = tab === "signup" ? "" : "none";
+};
+
+window.doLogin = async () => {
+  const e = document.getElementById("login-email").value;
+  const p = document.getElementById("login-pw").value;
+  try {
+    await signInWithEmailAndPassword(auth, e, p);
+  } catch(err) {
+    document.getElementById("login-msg").textContent = "로그인 실패: " + err.message;
+  }
+};
+
+window.doSignup = async () => {
+  const e = document.getElementById("su-email").value;
+  const n = document.getElementById("su-nick").value;
+  const p = document.getElementById("su-pw").value;
+  if (!n) { document.getElementById("signup-msg").textContent = "닉네임을 입력하세요"; return; }
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, e, p);
+    await updateProfile(cred.user, { displayName: n });
+    await set(ref(db, `users/${cred.user.uid}`), { nick: n, email: e });
+  } catch(err) {
+    document.getElementById("signup-msg").textContent = "가입 실패: " + err.message;
+  }
+};
+
+window.doLogout = async () => {
+  await signOut(auth);
+};
+
+// ===== SECTOR GRID =====
+function renderSectorGrid() {
+  const grid = document.getElementById("sector-grid");
+  grid.innerHTML = "";
+  SECTORS.forEach(s => {
+    const b = document.createElement("button");
+    b.className = "sector-btn";
+    b.textContent = s;
+    b.onclick = () => {
+      document.querySelectorAll(".sector-btn").forEach(x => x.classList.remove("selected"));
+      b.classList.add("selected");
+    };
+    grid.appendChild(b);
+  });
+}
+
+// ===== SETUP =====
+window.doSetup = async () => {
+  const name = document.getElementById("company-name-input").value.trim();
+  const coin = document.getElementById("coin-name-input").value.trim().toUpperCase();
+  const selected = document.querySelector(".sector-btn.selected");
+  if (!name || !coin || !selected) {
+    document.getElementById("setup-msg").textContent = "모든 항목을 입력/선택하세요.";
+    return;
+  }
+  const uid = currentUser.uid;
+  const companyData = {
+    uid,
+    owner: currentUser.displayName || currentUser.email,
+    name,
+    coinName: coin,
+    sector: selected.textContent,
+    coinPrice: 100,
+    holdings: 1000,
+    totalSales: 0,
+    totalRevenue: 0,
+    balance: 100000,
+    createdAt: Date.now(),
+    haltSales: false,
+  };
+  await set(ref(db, `companies/${uid}`), companyData);
+  await set(ref(db, `priceHistory/${uid}`), Array(30).fill(100));
+};
+
+// ===== PATENT SYSTEM INIT =====
+async function initPatentOffice() {
+  const snap = await get(ref(db, "companies/PATENT_OFFICE"));
+  if (!snap.exists()) {
+    await set(ref(db, "companies/PATENT_OFFICE"), {
+      uid: "PATENT_OFFICE",
+      owner: "SYSTEM",
+      name: "특허청",
+      coinName: "GOV",
+      sector: "🏛️ 정부기관",
+      coinPrice: 999999,
+      holdings: 0,
+      totalSales: 0,
+      totalRevenue: 0,
+      balance: 999999999,
+      isSystem: true
+    });
+  }
+}
+
+// ===== MAIN AUTH STATE =====
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    showScreen("auth");
+    return;
+  }
+  currentUser = user;
+  document.getElementById("topbar-nick").textContent = user.displayName || user.email;
+  await initPatentOffice();
+
+  const snap = await get(ref(db, `companies/${user.uid}`));
+  if (!snap.exists()) {
+    renderSectorGrid();
+    showScreen("setup");
+    return;
+  }
+
+  showScreen("app");
+  initApp();
+});
+
+function showScreen(s) {
+  document.getElementById("auth-screen").style.display = s === "auth" ? "" : "none";
+  document.getElementById("setup-screen").style.display = s === "setup" ? "flex" : "none";
+  document.getElementById("app-screen").style.display = s === "app" ? "" : "none";
+}
+
+// ===== INIT APP =====
+function initApp() {
+  initChart();
+  subscribeCompanies();
+  subscribePatents();
+  subscribeContracts();
+  subscribeLawsuits();
+  startGameLoop();
+}
+
+function subscribeCompanies() {
+  onValue(ref(db, "companies"), snap => {
+    allCompanies = snap.val() || {};
+    myCompany = allCompanies[currentUser.uid];
+    if (!myCompany) return;
+    haltSales = myCompany.haltSales || false;
+    updateSidebar();
+    updateHomeStats();
+    updateTicker();
+    renderMarket();
+    renderCompanies();
+    renderContractSelects();
+    renderLawsuitSelects();
+  });
+}
+
+function subscribePatents() {
+  onValue(ref(db, "patents"), snap => {
+    allPatents = snap.val() || {};
+    renderPatents();
+    renderPatentSelect();
+  });
+}
+
+function subscribeContracts() {
+  onValue(ref(db, "contracts"), snap => {
+    allContracts = snap.val() || {};
+    renderContracts();
+    renderPendingContracts();
+    updateCollabSell();
+  });
+}
+
+function subscribeLawsuits() {
+  onValue(ref(db, "lawsuits"), snap => {
+    allLawsuits = snap.val() || {};
+    renderLawsuits();
+  });
+}
+
+// ===== GAME LOOP =====
+function startGameLoop() {
+  // Day tick every 60s
+  setInterval(async () => {
+    gameDay++;
+    document.getElementById("topbar-date").textContent = `Year ${Math.ceil(gameDay/365)}, Day ${gameDay}`;
+
+    // Passive revenue per day
+    if (myCompany && !haltSales) {
+      const passiveGain = Math.floor(myCompany.coinPrice * (myCompany.totalSales / 100 + 1));
+      await update(ref(db, `companies/${currentUser.uid}`), {
+        balance: (myCompany.balance || 0) + passiveGain,
+        totalRevenue: (myCompany.totalRevenue || 0) + passiveGain
+      });
+      addEvent("neutral", `📅 일일 수익 정산: +₩${passiveGain.toLocaleString()}`);
+    }
+
+    // Random event every 3 days
+    if (gameDay % 3 === 0) triggerRandomEvent();
+
+    // Price update for all companies
+    updateAllPrices();
+  }, 60000);
+
+  // Price micro-update every 5s
+  setInterval(() => {
+    if (myCompany) updateCoinPriceDisplay();
+  }, 5000);
+}
+
+async function updateAllPrices() {
+  const companies = Object.entries(allCompanies).filter(([k, v]) => !v.isSystem);
+  for (const [uid, company] of companies) {
+    const newPrice = calcPrice(company);
+    const histSnap = await get(ref(db, `priceHistory/${uid}`));
+    let hist = histSnap.val() || Array(30).fill(100);
+    hist = [...hist.slice(1), newPrice];
+    await update(ref(db, `companies/${uid}`), { coinPrice: newPrice });
+    await set(ref(db, `priceHistory/${uid}`), hist);
+    if (uid === currentUser.uid) {
+      chartData = hist;
+      drawChart();
+    }
+  }
+}
+
+function calcPrice(company) {
+  const base = 100;
+  const holdingBonus = (company.holdings || 1000) * 0.05;
+  const salesBonus = (company.totalSales || 0) * 0.8;
+  const revenue = (company.totalRevenue || 0) * 0.001;
+  const current = company.coinPrice || base;
+  const newPrice = Math.max(1, Math.floor(base + holdingBonus + salesBonus + revenue + (Math.random() - 0.4) * 10));
+  // Sudden drop if sales are low
+  const salesDropFactor = company.totalSales < 5 && gameDay > 5 ? 0.85 : 1;
+  return Math.floor(newPrice * salesDropFactor);
+}
+
+async function triggerRandomEvent() {
+  const companies = Object.entries(allCompanies).filter(([k, v]) => !v.isSystem && k !== currentUser.uid);
+  if (companies.length === 0) return;
+  const [targetUid, targetCompany] = companies[Math.floor(Math.random() * companies.length)];
+  const event = EVENTS[Math.floor(Math.random() * EVENTS.length)];
+  const msg = event.msg.replace("{target}", targetCompany.name);
+
+  addEvent(event.type, msg);
+
+  if (event.effect === "tax") {
+    const loss = Math.floor((targetCompany.balance || 0) * 0.2);
+    await update(ref(db, `companies/${targetUid}`), { balance: Math.max(0, (targetCompany.balance||0) - loss) });
+  } else if (event.effect === "recall" || event.effect === "scandal") {
+    const drop = event.effect === "scandal" ? 0.7 : 0.85;
+    await update(ref(db, `companies/${targetUid}`), { coinPrice: Math.floor((targetCompany.coinPrice||100) * drop) });
+  } else if (event.effect === "boom" || event.effect === "export") {
+    await update(ref(db, `companies/${targetUid}`), {
+      totalSales: (targetCompany.totalSales||0) + 50,
+      coinPrice: Math.floor((targetCompany.coinPrice||100) * 1.2)
+    });
+  } else if (event.effect === "press") {
+    await update(ref(db, `companies/${targetUid}`), { coinPrice: Math.floor((targetCompany.coinPrice||100) * 1.2) });
+  } else if (event.effect === "sales_halt") {
+    await update(ref(db, `companies/${targetUid}`), { haltSales: true });
+    setTimeout(async () => {
+      await update(ref(db, `companies/${targetUid}`), { haltSales: false });
+      addEvent("neutral", `✅ ${targetCompany.name} 위생조사 통과, 판매 재개`);
+    }, 30000);
+  } else if (event.effect === "market_down") {
+    // handled via price calc
+  } else if (event.effect === "market_up") {
+    // handled via price calc
+  } else if (event.effect === "sector_crisis") {
+    const sector = targetCompany.sector;
+    const sameSctr = Object.entries(allCompanies).filter(([k,v]) => v.sector === sector && !v.isSystem);
+    for (const [uid2, c2] of sameSctr) {
+      await update(ref(db, `companies/${uid2}`), { coinPrice: Math.floor((c2.coinPrice||100) * 0.9) });
+    }
+  }
+}
+
+// ===== SELL =====
+window.updateSellPreview = () => {
+  const qty = parseInt(document.getElementById("sell-qty").value);
+  document.getElementById("sell-qty-disp").textContent = qty;
+  if (!myCompany) return;
+  const revenue = Math.floor(qty * myCompany.coinPrice * (1 + qty / 100));
+  document.getElementById("sell-preview").textContent = "₩" + revenue.toLocaleString();
+};
+
+window.doSell = async () => {
+  if (!myCompany) return;
+  if (haltSales) { addEvent("bad", "❌ 위생조사로 판매가 일시 중단되었습니다!"); return; }
+  const qty = parseInt(document.getElementById("sell-qty").value);
+  const revenue = Math.floor(qty * myCompany.coinPrice * (1 + qty / 100));
+
+  // Check for patent infringement
+  await checkPatentInfringement(myCompany.sector);
+
+  const newSales = (myCompany.totalSales || 0) + qty;
+  const newRevenue = (myCompany.totalRevenue || 0) + revenue;
+  const newBalance = (myCompany.balance || 0) + revenue;
+  const newHoldings = (myCompany.holdings || 1000) + qty;
+
+  await update(ref(db, `companies/${currentUser.uid}`), {
+    totalSales: newSales,
+    totalRevenue: newRevenue,
+    balance: newBalance,
+    holdings: newHoldings
+  });
+
+  addEvent("good", `🛒 ${qty}개 판매 완료! +₩${revenue.toLocaleString()}`);
+};
+
+async function checkPatentInfringement(sector) {
+  const patentEntry = Object.entries(allPatents).find(([k, v]) => v.sector === sector && v.ownerUid !== currentUser.uid);
+  if (patentEntry) {
+    const [pid, patent] = patentEntry;
+    const hasContract = Object.values(allContracts).some(c =>
+      ((c.from === currentUser.uid && c.to === patent.ownerUid) ||
+       (c.to === currentUser.uid && c.from === patent.ownerUid)) && c.status === "accepted"
+    );
+    if (!hasContract) {
+      addEvent("warning", `⚠️ ${patent.ownerName}의 특허 분야(${sector}) 무단 판매 감지! 소송 위험!`);
+    }
+  }
+}
+
+// ===== COLLAB SELL =====
+function updateCollabSell() {
+  const collabCard = document.getElementById("collab-sell-card");
+  const collabList = document.getElementById("collab-sell-list");
+  if (!myCompany) return;
+
+  const collabs = Object.entries(allContracts).filter(([k, c]) =>
+    c.type === "collab" && c.status === "accepted" &&
+    (c.from === currentUser.uid || c.to === currentUser.uid)
+  );
+
+  if (collabs.length === 0) { collabCard.style.display = "none"; return; }
+  collabCard.style.display = "";
+  collabList.innerHTML = "";
+  collabs.forEach(([cid, c]) => {
+    const partnerId = c.from === currentUser.uid ? c.to : c.from;
+    const partner = allCompanies[partnerId];
+    if (!partner) return;
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <div class="stat-row">
+        <span>${partner.name}과 콜라보</span>
+        <button class="btn btn-sm" onclick="doCollabSell('${partnerId}', '${cid}')">콜라보 판매 (+15% 수익)</button>
+      </div>`;
+    collabList.appendChild(div);
+  });
+}
+
+window.doCollabSell = async (partnerId, cid) => {
+  if (!myCompany) return;
+  const qty = parseInt(document.getElementById("sell-qty").value);
+  const partner = allCompanies[partnerId];
+  const revenue = Math.floor(qty * myCompany.coinPrice * (1 + qty / 100) * 1.15);
+  const partnerRevenue = Math.floor(revenue * 0.1);
+
+  await update(ref(db, `companies/${currentUser.uid}`), {
+    totalSales: (myCompany.totalSales||0) + qty,
+    totalRevenue: (myCompany.totalRevenue||0) + revenue,
+    balance: (myCompany.balance||0) + revenue
+  });
+  if (partner) {
+    await update(ref(db, `companies/${partnerId}`), {
+      balance: (partner.balance||0) + partnerRevenue
+    });
+  }
+  addEvent("good", `🤝 콜라보 판매! +₩${revenue.toLocaleString()} (${partner?.name}에게 +₩${partnerRevenue.toLocaleString()})`);
+};
+
+// ===== PATENTS =====
+window.doRegisterPatent = async () => {
+  if (!myCompany) return;
+  const sector = document.getElementById("patent-sector-select").value;
+  if (!sector) return;
+  if ((myCompany.balance || 0) < 50000) {
+    addEvent("bad", "❌ 잔고 부족! 특허 등록비 ₩50,000 필요"); return;
+  }
+  const existing = Object.values(allPatents).find(p => p.sector === sector);
+  if (existing) {
+    addEvent("warning", `⚠️ ${sector} 분야는 이미 특허 등록됨`); return;
+  }
+  const pid = push(ref(db, "patents")).key;
+  await set(ref(db, `patents/${pid}`), {
+    sector,
+    ownerUid: currentUser.uid,
+    ownerName: myCompany.name,
+    registeredAt: Date.now()
+  });
+  await update(ref(db, `companies/${currentUser.uid}`), {
+    balance: (myCompany.balance||0) - 50000
+  });
+  addEvent("good", `📋 특허 등록 완료! ${sector} 분야`);
+};
+
+function renderPatents() {
+  const list = document.getElementById("patent-list");
+  if (!list) return;
+  list.innerHTML = "";
+  const patents = Object.entries(allPatents);
+  if (patents.length === 0) { list.innerHTML = "<div class='text-sm'>등록된 특허 없음</div>"; return; }
+  patents.forEach(([pid, p]) => {
+    const isMe = p.ownerUid === currentUser.uid;
+    list.innerHTML += `
+      <div class="patent-item">
+        <div>
+          <div>${p.sector}</div>
+          <div class="patent-owner">보유: ${p.ownerName}</div>
+        </div>
+        <span class="badge ${isMe ? 'badge-green' : 'badge-yellow'}">${isMe ? '내 특허' : '타인 특허'}</span>
+      </div>`;
+  });
+}
+
+function renderPatentSelect() {
+  const sel = document.getElementById("patent-sector-select");
+  if (!sel) return;
+  sel.innerHTML = SECTORS.map(s => `<option value="${s}">${s}</option>`).join("");
+}
+
+// ===== CONTRACTS =====
+window.doSendContract = async () => {
+  const toUid = document.getElementById("contract-target-select").value;
+  const type = document.getElementById("contract-type-select").value;
+  if (!toUid || !myCompany) return;
+  const cid = push(ref(db, "contracts")).key;
+  await set(ref(db, `contracts/${cid}`), {
+    from: currentUser.uid,
+    fromName: myCompany.name,
+    to: toUid,
+    toName: allCompanies[toUid]?.name,
+    type,
+    status: "pending",
+    createdAt: Date.now()
+  });
+  addEvent("neutral", `📤 계약 제안 발송: ${allCompanies[toUid]?.name}`);
+};
+
+function renderContracts() {
+  const list = document.getElementById("contracts-list");
+  if (!list) return;
+  const myContracts = Object.entries(allContracts).filter(([k, c]) =>
+    c.status === "accepted" && (c.from === currentUser.uid || c.to === currentUser.uid)
+  );
+  list.innerHTML = myContracts.length === 0 ? "<div class='text-sm'>체결된 계약 없음</div>" : "";
+  myContracts.forEach(([cid, c]) => {
+    const partnerName = c.from === currentUser.uid ? c.toName : c.fromName;
+    list.innerHTML += `
+      <div class="company-list-item partner">
+        <div>
+          <div class="cli-name">${partnerName}</div>
+          <div class="cli-sector">${c.type === "collab" ? "콜라보 계약" : "공급 계약"}</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="cancelContract('${cid}')">해지</button>
+      </div>`;
+  });
+}
+
+function renderPendingContracts() {
+  const list = document.getElementById("pending-contracts");
+  if (!list) return;
+  const pending = Object.entries(allContracts).filter(([k, c]) => c.to === currentUser.uid && c.status === "pending");
+  list.innerHTML = pending.length === 0 ? "<div class='text-sm'>받은 제안 없음</div>" : "";
+  pending.forEach(([cid, c]) => {
+    list.innerHTML += `
+      <div class="company-list-item">
+        <div>
+          <div class="cli-name">${c.fromName}</div>
+          <div class="cli-sector">${c.type === "collab" ? "콜라보 제안" : "공급 계약 제안"}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="acceptContract('${cid}')">수락</button>
+          <button class="btn btn-red btn-sm" onclick="rejectContract('${cid}')">거절</button>
+        </div>
+      </div>`;
+  });
+}
+
+window.acceptContract = async (cid) => {
+  await update(ref(db, `contracts/${cid}`), { status: "accepted" });
+  addEvent("good", `✅ 계약 수락 완료!`);
+};
+window.rejectContract = async (cid) => {
+  await update(ref(db, `contracts/${cid}`), { status: "rejected" });
+};
+window.cancelContract = async (cid) => {
+  await remove(ref(db, `contracts/${cid}`));
+  addEvent("neutral", "계약 해지 완료");
+};
+
+function renderContractSelects() {
+  const sel = document.getElementById("contract-target-select");
+  if (!sel) return;
+  const others = Object.entries(allCompanies).filter(([k, v]) => k !== currentUser.uid && !v.isSystem);
+  sel.innerHTML = others.map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+}
+
+// ===== LAWSUITS =====
+window.doFileLawsuit = async () => {
+  const targetUid = document.getElementById("lawsuit-target-select").value;
+  const patentId = document.getElementById("lawsuit-patent-select").value;
+  if (!targetUid || !patentId || !myCompany) return;
+  const patent = allPatents[patentId];
+  if (!patent || patent.ownerUid !== currentUser.uid) {
+    addEvent("bad", "내 특허로만 소송 가능합니다"); return;
+  }
+  const target = allCompanies[targetUid];
+  if (!target) return;
+
+  // Check if target sold in patent sector recently (simplified: just allow filing)
+  const lid = push(ref(db, "lawsuits")).key;
+  await set(ref(db, `lawsuits/${lid}`), {
+    plaintiff: currentUser.uid,
+    plaintiffName: myCompany.name,
+    defendant: targetUid,
+    defendantName: target.name,
+    patentId,
+    patentSector: patent.sector,
+    status: "pending",
+    filedAt: Date.now()
+  });
+  addEvent("warning", `⚖️ ${target.name}을 상대로 소송 제기! (${patent.sector} 특허 침해)`);
+
+  // Auto-resolve after 30s
+  setTimeout(() => resolveLawsuit(lid), 30000);
+};
+
+async function resolveLawsuit(lid) {
+  const snap = await get(ref(db, `lawsuits/${lid}`));
+  if (!snap.exists()) return;
+  const suit = snap.val();
+  if (suit.status !== "pending") return;
+
+  // 70% plaintiff wins
+  const plaintiffWins = Math.random() < 0.7;
+  const defendant = allCompanies[suit.defendant];
+  const plaintiff = allCompanies[suit.plaintiff];
+  if (!defendant || !plaintiff) return;
+
+  let resultMsg = "";
+  if (plaintiffWins) {
+    const fine = Math.floor((defendant.balance || 0) * 0.3);
+    await update(ref(db, `companies/${suit.defendant}`), { balance: Math.max(0, (defendant.balance||0) - fine) });
+    await update(ref(db, `companies/${suit.plaintiff}`), { balance: (plaintiff.balance||0) + fine });
+    resultMsg = `⚖️ 소송 결과: ${suit.plaintiffName} 승소! ${suit.defendantName}로부터 ₩${fine.toLocaleString()} 획득`;
+    await update(ref(db, `lawsuits/${lid}`), { status: "plaintiff_won", fine });
+  } else {
+    resultMsg = `⚖️ 소송 결과: ${suit.defendantName} 승소! 소송 기각됨`;
+    await update(ref(db, `lawsuits/${lid}`), { status: "defendant_won" });
+  }
+  addEvent(plaintiffWins ? "good" : "bad", resultMsg);
+
+  // Show modal if I'm involved
+  if (suit.plaintiff === currentUser.uid || suit.defendant === currentUser.uid) {
+    document.getElementById("lr-title").textContent = plaintiffWins ? "⚖️ 판결: 원고 승소" : "⚖️ 판결: 피고 승소";
+    document.getElementById("lr-body").textContent = resultMsg;
+    document.getElementById("lawsuit-result-modal").classList.add("show");
+  }
+}
+
+function renderLawsuits() {
+  const list = document.getElementById("lawsuits-list");
+  if (!list) return;
+  const suits = Object.entries(allLawsuits);
+  list.innerHTML = suits.length === 0 ? "<div class='text-sm'>진행 중인 소송 없음</div>" : "";
+  suits.forEach(([lid, s]) => {
+    const statusBadge = s.status === "pending" ? "🔄 진행중" :
+      s.status === "plaintiff_won" ? "✅ 원고 승소" : "❌ 피고 승소";
+    list.innerHTML += `
+      <div class="patent-item">
+        <div>
+          <div>${s.plaintiffName} vs ${s.defendantName}</div>
+          <div class="patent-owner">${s.patentSector} 특허 침해</div>
+        </div>
+        <span class="lawsuit-badge">${statusBadge}</span>
+      </div>`;
+  });
+}
+
+function renderLawsuitSelects() {
+  const tSel = document.getElementById("lawsuit-target-select");
+  const pSel = document.getElementById("lawsuit-patent-select");
+  if (!tSel || !pSel) return;
+  const others = Object.entries(allCompanies).filter(([k, v]) => k !== currentUser.uid && !v.isSystem);
+  tSel.innerHTML = others.map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("");
+  const myPatents = Object.entries(allPatents).filter(([k, v]) => v.ownerUid === currentUser.uid);
+  pSel.innerHTML = myPatents.map(([k, v]) => `<option value="${k}">${v.sector}</option>`).join("");
+}
+
+// ===== MARKET & COMPANIES =====
+function renderMarket() {
+  const list = document.getElementById("market-list");
+  if (!list) return;
+  const companies = Object.entries(allCompanies).filter(([k, v]) => !v.isSystem)
+    .sort(([, a], [, b]) => (b.coinPrice||0) - (a.coinPrice||0));
+  list.innerHTML = companies.map(([uid, c], i) => `
+    <div class="company-list-item">
+      <div>
+        <div class="cli-name">#${i+1} ${c.coinName}</div>
+        <div class="cli-sector">${c.name} · ${c.sector}</div>
+      </div>
+      <div class="cli-price" style="color:var(--accent)">₩${(c.coinPrice||100).toLocaleString()}</div>
+    </div>`).join("");
+}
+
+function renderCompanies() {
+  const list = document.getElementById("companies-list");
+  if (!list || !myCompany) return;
+  const companies = Object.entries(allCompanies).filter(([k, v]) => !v.isSystem && k !== currentUser.uid);
+  list.innerHTML = companies.length === 0 ? "<div class='text-sm'>다른 기업 없음 (친구를 초대하세요!)</div>" : "";
+  companies.forEach(([uid, c]) => {
+    const isRival = c.sector === myCompany.sector;
+    const isPartner = Object.values(allContracts).some(ct =>
+      ct.status === "accepted" &&
+      ((ct.from === currentUser.uid && ct.to === uid) || (ct.to === currentUser.uid && ct.from === uid))
+    );
+    const cls = isPartner ? "partner" : isRival ? "rival" : "";
+    const badge = isPartner ? `<span class="badge badge-green">파트너</span>` :
+      isRival ? `<span class="badge badge-red">경쟁사</span>` : "";
+    list.innerHTML += `
+      <div class="company-list-item ${cls}" onclick="openCompanyModal('${uid}')">
+        <div>
+          <div class="cli-name">${c.name} ${badge}</div>
+          <div class="cli-sector">${c.sector} · 코인: ${c.coinName}</div>
+        </div>
+        <div class="cli-price">₩${(c.coinPrice||100).toLocaleString()}</div>
+      </div>`;
+  });
+}
+
+// ===== COMPANY MODAL =====
+window.openCompanyModal = (uid) => {
+  selectedModalCompanyId = uid;
+  const c = allCompanies[uid];
+  if (!c) return;
+  document.getElementById("modal-company-name").textContent = c.name;
+  document.getElementById("modal-company-body").innerHTML = `
+    <div class="stat-row"><span class="stat-label">분야</span><span class="stat-val">${c.sector}</span></div>
+    <div class="stat-row"><span class="stat-label">코인</span><span class="stat-val">${c.coinName}</span></div>
+    <div class="stat-row"><span class="stat-label">코인가</span><span class="stat-val green">₩${(c.coinPrice||100).toLocaleString()}</span></div>
+    <div class="stat-row"><span class="stat-label">총 판매량</span><span class="stat-val">${(c.totalSales||0).toLocaleString()}</span></div>
+    ${c.sector === myCompany?.sector ? '<div class="badge badge-red" style="margin-top:8px">경쟁사 분야</div>' : ''}
+  `;
+  document.getElementById("company-modal").classList.add("show");
+};
+
+window.modalSendContract = async () => {
+  if (!selectedModalCompanyId || !myCompany) return;
+  const cid = push(ref(db, "contracts")).key;
+  await set(ref(db, `contracts/${cid}`), {
+    from: currentUser.uid,
+    fromName: myCompany.name,
+    to: selectedModalCompanyId,
+    toName: allCompanies[selectedModalCompanyId]?.name,
+    type: "collab",
+    status: "pending",
+    createdAt: Date.now()
+  });
+  addEvent("neutral", `📤 계약 제안 발송!`);
+  closeModal("company-modal");
+};
+
+window.modalFileLawsuit = () => {
+  closeModal("company-modal");
+  showPage("lawsuits");
+  const sel = document.getElementById("lawsuit-target-select");
+  if (sel) sel.value = selectedModalCompanyId;
+};
+
+window.closeModal = (id) => { document.getElementById(id).classList.remove("show"); };
+
+// ===== UI UPDATES =====
+function updateSidebar() {
+  if (!myCompany) return;
+  document.getElementById("sc-name").textContent = myCompany.name;
+  document.getElementById("sc-sector").textContent = myCompany.sector;
+  document.getElementById("sc-balance").textContent = "₩" + (myCompany.balance||0).toLocaleString();
+  document.getElementById("sc-sales").textContent = (myCompany.totalSales||0).toLocaleString();
+  document.getElementById("sc-coinprice").textContent = "₩" + (myCompany.coinPrice||100).toLocaleString();
+  document.getElementById("sc-holdings").textContent = (myCompany.holdings||1000).toLocaleString();
+}
+
+function updateHomeStats() {
+  if (!myCompany) return;
+  document.getElementById("coin-name-display").textContent = myCompany.coinName;
+  updateCoinPriceDisplay();
+  document.getElementById("total-sales-disp").textContent = (myCompany.totalSales||0).toLocaleString();
+  document.getElementById("total-revenue-disp").textContent = "₩" + (myCompany.totalRevenue||0).toLocaleString();
+  document.getElementById("holdings-disp").textContent = (myCompany.holdings||1000).toLocaleString();
+  updateSellPreview();
+
+  // Rank
+  const sorted = Object.entries(allCompanies)
+    .filter(([k,v]) => !v.isSystem)
+    .sort(([,a],[,b]) => (b.totalRevenue||0) - (a.totalRevenue||0));
+  const rank = sorted.findIndex(([k]) => k === currentUser.uid) + 1;
+  document.getElementById("rank-disp").textContent = "#" + rank;
+}
+
+function updateCoinPriceDisplay() {
+  if (!myCompany) return;
+  const price = myCompany.coinPrice || 100;
+  const prev = chartData[chartData.length - 2] || price;
+  const change = ((price - prev) / prev * 100).toFixed(2);
+  document.getElementById("coin-price-big").textContent = "₩" + price.toLocaleString();
+  const changeEl = document.getElementById("coin-price-change");
+  changeEl.textContent = (change >= 0 ? "+" : "") + change + "%";
+  changeEl.className = "price-change " + (change >= 0 ? "up" : "down");
+}
+
+function updateTicker() {
+  const companies = Object.entries(allCompanies).filter(([k, v]) => !v.isSystem);
+  const text = companies.map(([k, c]) =>
+    `${c.coinName}: ₩${(c.coinPrice||100).toLocaleString()}`
+  ).join("   ·   ");
+  document.getElementById("ticker-inner").textContent = text || "데이터 로딩중...";
+}
+
+// ===== EVENTS =====
+function addEvent(type, msg) {
+  const log = document.getElementById("event-log");
+  const div = document.createElement("div");
+  div.className = `event-item ${type}`;
+  div.innerHTML = `${msg}<div class="event-time">${new Date().toLocaleTimeString('ko-KR')}</div>`;
+  log.insertBefore(div, log.firstChild);
+  if (log.children.length > 30) log.removeChild(log.lastChild);
+}
+
+// ===== PAGE NAV =====
+window.showPage = (page) => {
+  ["home","market","companies","patents","contracts","lawsuits"].forEach(p => {
+    document.getElementById("page-" + p).style.display = p === page ? "block" : "none";
+    const nav = document.getElementById("nav-" + p);
+    if (nav) nav.classList.toggle("active", p === page);
+  });
+  if (page === "market") renderMarket();
+  if (page === "companies") renderCompanies();
+  if (page === "patents") { renderPatents(); renderPatentSelect(); }
+  if (page === "contracts") { renderContracts(); renderPendingContracts(); renderContractSelects(); }
+  if (page === "lawsuits") { renderLawsuits(); renderLawsuitSelects(); }
+};
+
+// Load price history for chart
+async function loadMyPriceHistory() {
+  const snap = await get(ref(db, `priceHistory/${currentUser.uid}`));
+  if (snap.exists()) {
+    chartData = snap.val();
+    drawChart();
+  }
+}
+// Delay chart load
+setTimeout(loadMyPriceHistory, 2000);
+
+</script>
+</body>
+</html>
