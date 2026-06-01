@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CoinCorp</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/company.css">
+  <link rel="stylesheet" href="css/modal.css">
+</head>
+<body>
+
+<!-- ===== AUTH ===== -->
+<div id="auth-screen">
+  <div class="auth-logo">COINCORP</div>
+  <div class="auth-sub">가상 경제 시뮬레이션</div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">로그인</button>
+      <button class="auth-tab" onclick="switchAuthTab('signup')">회원가입</button>
+    </div>
+    <div id="tab-login">
+      <div class="form-group"><label>이메일</label><input type="email" id="login-email" placeholder="you@example.com"></div>
+      <div class="form-group"><label>비밀번호</label><input type="password" id="login-pw" placeholder="••••••••"></div>
+      <button class="btn" onclick="doLogin()">로그인</button>
+      <div class="auth-msg" id="login-msg"></div>
+    </div>
+    <div id="tab-signup" style="display:none">
+      <div class="form-group"><label>이메일</label><input type="email" id="su-email" placeholder="you@example.com"></div>
+      <div class="form-group"><label>닉네임</label><input type="text" id="su-nick" placeholder="닉네임"></div>
+      <div class="form-group"><label>비밀번호</label><input type="password" id="su-pw" placeholder="6자 이상"></div>
+      <button class="btn" onclick="doSignup()">가입하기</button>
+      <div class="auth-msg" id="signup-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETUP (회사 만들기 선택) ===== -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-title">🚀 시작하기</div>
+    <p class="text-sm" style="margin-bottom:24px;color:var(--text2)">회사를 만들거나, 실업자로 시작할 수 있어요.</p>
+    <button class="btn" style="margin-bottom:12px" onclick="showCompanySetup()">🏢 회사 만들기</button>
+    <button class="btn btn-outline" onclick="startAsUnemployed()">👤 실업자로 시작</button>
+  </div>
+</div>
+
+<!-- ===== COMPANY SETUP ===== -->
+<div id="company-setup-screen">
+  <div class="setup-card">
+    <div class="setup-title">🏢 회사 설립</div>
+    <div class="form-group"><label>회사명</label><input type="text" id="company-name-input" placeholder="내 회사 이름"></div>
+    <div class="form-group"><label>코인명</label><input type="text" id="coin-name-input" placeholder="예: KIMCOIN"></div>
+    <div class="form-group"><label>분야 선택</label><div class="sector-grid" id="sector-grid"></div></div>
+    <div class="form-group">
+      <label>일하는 방식</label>
+      <select id="work-style-select">
+        <option value="1">1. 전원 채굴</option>
+        <option value="2">2. 전원 판매</option>
+        <option value="3">3. 전원 생산 (B2B)</option>
+        <option value="4">4. 사장 판매 / 직원 채굴</option>
+        <option value="5">5. 사장 채굴 / 직원 재고정리</option>
+        <option value="6">6. 사장 채굴 / 직원 생산</option>
+      </select>
+    </div>
+    <button class="btn" onclick="doSetup()">회사 설립하기 🚀</button>
+    <button class="btn btn-outline" style="margin-top:8px" onclick="showScreen('setup')">← 뒤로</button>
+    <div class="auth-msg" id="setup-msg"></div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app-screen">
+
+  <!-- 상단바 -->
+  <div class="topbar">
+    <div class="topbar-logo">COINCORP</div>
+    <div class="topbar-center">
+      <div class="topbar-date" id="topbar-date">Day 1</div>
+      <!-- 선거 공지 -->
+      <div class="election-notice" id="election-notice" style="display:none">🗳️ 선거가 시작되었습니다!</div>
+    </div>
+    <div class="topbar-user">
+      <span id="topbar-nick">—</span>
+      <span class="balance-chip" id="topbar-balance">₩0</span>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+
+  <!-- 티커 -->
+  <div class="ticker-bar"><div class="ticker-inner" id="ticker-inner">📈 시장 데이터 로딩중...</div></div>
+
+  <!-- 메인 컨텐츠 -->
+  <div class="app-content" id="app-content">
+
+    <!-- ===== 홈 탭 ===== -->
+    <div id="page-home" class="page active">
+      <div class="page-scroll">
+        <!-- 내 자산 -->
+        <div class="card">
+          <div class="card-title">💰 내 자산</div>
+          <div class="asset-grid">
+            <div class="asset-box"><div class="asset-label">현금</div><div class="asset-val yellow" id="home-cash">₩0</div></div>
+            <div class="asset-box"><div class="asset-label">총 코인 환산</div><div class="asset-val green" id="home-total-coins">₩0</div></div>
+            <div class="asset-box"><div class="asset-label">집</div><div class="asset-val" id="home-house">없음</div></div>
+            <div class="asset-box"><div class="asset-label">상태</div><div class="asset-val" id="home-status">실업자</div></div>
+          </div>
+        </div>
+
+        <!-- 식사 알림 -->
+        <div class="card meal-card" id="meal-card">
+          <div class="card-title">🍽️ 오늘의 식사</div>
+          <p class="text-sm" id="meal-status">아직 오늘 식사를 안 했어요!</p>
+          <button class="btn btn-sm btn-yellow" onclick="showPage('market')">마트에서 음식 구매</button>
+        </div>
+
+        <!-- 취업 중인 회사들 -->
+        <div class="card">
+          <div class="card-title">🏢 내 회사 목록 <span class="badge badge-blue" id="company-count">0/5</span></div>
+          <div id="my-companies-list"><div class="text-sm">회사 없음</div></div>
+        </div>
+
+        <!-- 코인 거래소 -->
+        <div class="card">
+          <div class="card-title">📈 코인 거래소</div>
+          <div class="form-group">
+            <input type="text" id="exchange-search" placeholder="코인 검색..." oninput="filterExchange()" style="margin-bottom:10px">
+          </div>
+          <div id="exchange-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 취업 탭 ===== -->
+    <div id="page-jobs" class="page">
+      <div class="page-scroll">
+        <div class="card">
+          <div class="card-title">💼 회사 찾기</div>
+          <input type="text" id="job-search" placeholder="회사명 또는 분야 검색..." oninput="filterJobs()" style="margin-bottom:12px">
+          <div id="job-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📬 내 지원 현황</div>
+          <div id="my-applications"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 리더보드 탭 ===== -->
+    <div id="page-leaderboard" class="page">
+      <div class="page-scroll">
+        <div class="card">
+          <div class="card-title">🏆 리더보드</div>
+          <div class="tabs">
+            <button class="tab active" onclick="switchLeaderboard('cash')">현금</button>
+            <button class="tab" onclick="switchLeaderboard('total')">총자산</button>
+            <button class="tab" onclick="switchLeaderboard('company')">회사 코인가</button>
+          </div>
+          <div id="leaderboard-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 마트 탭 ===== -->
+    <div id="page-market" class="page">
+      <div class="page-scroll">
+        <div class="tabs">
+          <button class="tab active" onclick="switchMarket('shop')">🛒 쇼핑</button>
+          <button class="tab" onclick="switchMarket('used')">♻️ 중고마켓</button>
+          <button class="tab" onclick="switchMarket('inventory')">🎒 인벤토리</button>
+          <button class="tab" onclick="switchMarket('b2b')">🏭 기업구매</button>
+        </div>
+
+        <div id="market-shop">
+          <div class="card">
+            <div class="card-title">🛒 쇼핑</div>
+            <input type="text" id="market-search" placeholder="물건 또는 회사 검색..." oninput="filterMarket()" style="margin-bottom:12px">
+            <div id="market-list"></div>
+          </div>
+        </div>
+
+        <div id="market-used" style="display:none">
+          <div class="card">
+            <div class="card-title">♻️ 중고마켓</div>
+            <p class="text-sm" style="margin-bottom:12px">중고거래 회사로 등록된 경우에만 판매 가능</p>
+            <div id="used-list"></div>
+            <button class="btn btn-outline btn-sm mt8" onclick="showSellUsedModal()">내 물건 판매하기</button>
+          </div>
+        </div>
+
+        <div id="market-inventory" style="display:none">
+          <div class="card">
+            <div class="card-title">🎒 인벤토리</div>
+            <div id="inventory-list"></div>
+          </div>
+        </div>
+
+        <div id="market-b2b" style="display:none">
+          <div class="card">
+            <div class="card-title">🏭 기업간 거래 (B2B)</div>
+            <div id="b2b-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 마이페이지 탭 ===== -->
+    <div id="page-mypage" class="page">
+      <div class="page-scroll">
+        <div class="card">
+          <div class="card-title">👤 마이페이지</div>
+          <div class="form-group"><label>닉네임</label><input type="text" id="my-nick" readonly></div>
+          <div class="form-group"><label>이메일</label><input type="text" id="my-email" readonly></div>
+          <div class="form-group"><label>현금</label><input type="text" id="my-cash" readonly></div>
+          <div class="form-group"><label>총 자산 (코인 환산 포함)</label><input type="text" id="my-total" readonly></div>
+          <div class="form-group"><label>집</label><input type="text" id="my-house" readonly></div>
+          <hr class="divider">
+          <button class="btn btn-yellow" onclick="showBuyHouseModal()">🏠 집 구매</button>
+          <hr class="divider">
+          <div class="card-title" style="margin-top:16px">🏛️ 정당 가입</div>
+          <select id="party-select">
+            <option value="">정당 선택...</option>
+            <option value="민주주의당">민주주의당</option>
+            <option value="국민의당">국민의당</option>
+            <option value="미래를 위한 당">미래를 위한 당</option>
+            <option value="너무 달당">너무 달당</option>
+            <option value="교육이당">교육이당</option>
+          </select>
+          <button class="btn btn-blue btn-sm" onclick="joinParty()">정당 가입</button>
+          <div class="text-sm mt8" id="my-party-status"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 회사 내부 (회사 클릭 시) ===== -->
+    <div id="page-company" class="page">
+      <div class="company-topbar">
+        <button class="btn btn-outline btn-sm" onclick="showPage('home')">← 나가기</button>
+        <div class="company-topbar-name" id="comp-name">회사명</div>
+        <div id="comp-role-badge"></div>
+      </div>
+
+      <!-- 채굴 UI -->
+      <div id="work-mining" class="work-ui" style="display:none">
+        <div class="mining-layout">
+          <div class="mining-center">
+            <div class="mining-btn-wrap">
+              <button class="mining-btn" id="mining-btn" onclick="toggleMining()">
+                <span id="mining-btn-text">⚡ 채굴 시작</span>
+              </button>
+              <div class="mining-status" id="mining-status">대기중</div>
+            </div>
+          </div>
+          <div class="mining-right">
+            <div class="info-box"><div class="info-label">코인 가격</div><div class="info-val green" id="m-coin-price">₩0</div></div>
+            <div class="info-box"><div class="info-label">내 돈</div><div class="info-val yellow" id="m-my-cash">₩0</div></div>
+            <div class="info-box"><div class="info-label">보유 코인</div><div class="info-val" id="m-my-coins">0</div></div>
+            <div class="info-box"><div class="info-label">채굴량/분</div><div class="info-val" id="m-rate">0</div></div>
+          </div>
+        </div>
+        <div class="mining-bottom">
+          <div class="perf-bar-wrap"><div class="perf-label">GPU</div><div class="perf-bar"><div class="perf-fill" id="gpu-bar" style="width:0%"></div></div><span id="gpu-pct">0%</span></div>
+          <div class="perf-bar-wrap"><div class="perf-label">CPU</div><div class="perf-bar"><div class="perf-fill cpu" id="cpu-bar" style="width:0%"></div></div><span id="cpu-pct">0%</span></div>
+        </div>
+      </div>
+
+      <!-- 판매 UI -->
+      <div id="work-sales" class="work-ui" style="display:none">
+        <div class="sales-layout">
+          <div class="sales-left">
+            <div class="card-title">📦 재고</div>
+            <div id="sales-inventory"></div>
+          </div>
+          <div class="sales-right">
+            <div class="card-title">📋 주문 신청</div>
+            <div id="sales-orders"></div>
+            <button class="btn btn-sm mt8" onclick="orderStock()">재고 주문하기</button>
+          </div>
+        </div>
+        <div class="sales-bottom">
+          <div class="info-box"><div class="info-label">수익률</div><div class="info-val green" id="s-profit-rate">0%</div></div>
+          <div class="info-box"><div class="info-label">코인 가격</div><div class="info-val" id="s-coin-price">₩0</div></div>
+          <div class="info-box"><div class="info-label">오늘 판매량</div><div class="info-val yellow" id="s-today-sales">0</div></div>
+        </div>
+      </div>
+
+      <!-- 생산 UI -->
+      <div id="work-production" class="work-ui" style="display:none">
+        <div class="prod-layout">
+          <div class="prod-center">
+            <div class="card-title">🏭 생산</div>
+            <div id="prod-items"></div>
+            <button class="btn mt8" onclick="produceItem()">물건 생산하기</button>
+          </div>
+          <div class="prod-right">
+            <div class="info-box"><div class="info-label">목표 재고</div><div class="info-val" id="p-target">0</div></div>
+            <div class="info-box"><div class="info-label">현재 재고</div><div class="info-val" id="p-current">0</div></div>
+            <div class="info-box"><div class="info-label">생산 속도</div><div class="info-val green" id="p-speed">0/분</div></div>
+          </div>
+        </div>
+        <div class="prod-bottom">
+          <div class="info-box"><div class="info-label">코인 가격</div><div class="info-val" id="p-coin-price">₩0</div></div>
+          <div class="info-box"><div class="info-label">보유 돈</div><div class="info-val yellow" id="p-cash">₩0</div></div>
+        </div>
+      </div>
+
+      <!-- 사장 전용 탭 -->
+      <div id="boss-panel" style="display:none">
+        <div class="tabs">
+          <button class="tab active" onclick="switchBossTab('overview')">📊 현황</button>
+          <button class="tab" onclick="switchBossTab('employees')">👥 직원</button>
+          <button class="tab" onclick="switchBossTab('layout')">🏗️ 배치</button>
+          <button class="tab" onclick="switchBossTab('robots')">🤖 로봇</button>
+          <button class="tab" onclick="switchBossTab('settings')">⚙️ 설정</button>
+        </div>
+
+        <div id="boss-overview">
+          <div class="card">
+            <div class="card-title">📊 회사 현황</div>
+            <div class="stat-row"><span class="stat-label">코인가</span><span class="stat-val green" id="b-coin-price">₩0</span></div>
+            <div class="stat-row"><span class="stat-label">총 판매량</span><span class="stat-val" id="b-total-sales">0</span></div>
+            <div class="stat-row"><span class="stat-label">잔고</span><span class="stat-val yellow" id="b-balance">₩0</span></div>
+            <div class="stat-row"><span class="stat-label">직원 수</span><span class="stat-val" id="b-employee-count">0명</span></div>
+          </div>
+          <div class="card">
+            <div class="card-title">📣 홍보</div>
+            <p class="text-sm">1억원으로 전체 홈 화면에 광고 노출</p>
+            <button class="btn btn-yellow mt8" onclick="doPromotion()">홍보하기 (₩100,000,000)</button>
+          </div>
+        </div>
+
+        <div id="boss-employees" style="display:none">
+          <div class="card">
+            <div class="card-title">👥 직원 관리</div>
+            <div id="employee-list"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">📬 입사 지원</div>
+            <div id="application-list"></div>
+          </div>
+        </div>
+
+        <div id="boss-layout" style="display:none">
+          <div class="card">
+            <div class="card-title">🏗️ 건물 배치 <span class="text-sm">(16x16)</span></div>
+            <div id="layout-grid" class="layout-grid"></div>
+            <div class="layout-toolbar" id="layout-toolbar">
+              <button class="tool-btn" onclick="selectTool('mining-pc')">💻 채굴PC</button>
+              <button class="tool-btn" onclick="selectTool('mining-body')">🖥️ 본체</button>
+              <button class="tool-btn" onclick="selectTool('shelf')">📦 선반</button>
+              <button class="tool-btn" onclick="selectTool('desk')">🪑 책상</button>
+              <button class="tool-btn" onclick="selectTool('counter')">🏪 카운터</button>
+              <button class="tool-btn" onclick="selectTool('container')">📫 컨테이너</button>
+              <button class="tool-btn" onclick="selectTool('table')">🪵 테이블</button>
+              <button class="tool-btn" onclick="selectTool('car')">🚗 차</button>
+              <button class="tool-btn tool-btn-red" onclick="selectTool('delete')">🗑️ 삭제</button>
+            </div>
+            <button class="btn btn-outline btn-sm mt8" onclick="expandLayout()">부지 확장 (₩50,000,000/10평)</button>
+          </div>
+        </div>
+
+        <div id="boss-robots" style="display:none">
+          <div class="card">
+            <div class="card-title">🤖 로봇 구매</div>
+            <div class="robot-grid">
+              <div class="robot-card">
+                <div class="robot-title">⛏️ 채굴 로봇</div>
+                <div class="robot-tier" onclick="buyRobot('mining',1)">1티어 ₩1,500만 (전기세 ₩300만) 10초/1회</div>
+                <div class="robot-tier" onclick="buyRobot('mining',2)">2티어 ₩3,500만 (전기세 ₩450만) 5초/1회</div>
+                <div class="robot-tier" onclick="buyRobot('mining',3)">3티어 ₩9,000만 (전기세 ₩550만) 1초/1회</div>
+              </div>
+              <div class="robot-card">
+                <div class="robot-title">🛒 판매 로봇</div>
+                <div class="robot-tier" onclick="buyRobot('sales',1)">1티어 ₩1,500만 (전기세 ₩300만) 10초/1회</div>
+                <div class="robot-tier" onclick="buyRobot('sales',2)">2티어 ₩3,500만 (전기세 ₩450만) 5초/1회</div>
+                <div class="robot-tier" onclick="buyRobot('sales',3)">3티어 ₩9,000만 (전기세 ₩550만) 1초/1회</div>
+              </div>
+              <div class="robot-card">
+                <div class="robot-title">🏭 생산 로봇</div>
+                <div class="robot-tier" onclick="buyRobot('production',1)">1티어 ₩1,500만 (전기세 ₩300만) 10초/1회</div>
+                <div class="robot-tier" onclick="buyRobot('production',2)">2티어 ₩3,500만 (전기세 ₩450만) 5초/1회</div>
+                <div class="robot-tier" onclick="buyRobot('production',3)">3티어 ₩9,000만 (전기세 ₩550만) 1초/1회</div>
+              </div>
+            </div>
+            <div class="card-title mt8">내 로봇</div>
+            <div id="my-robots-list"></div>
+          </div>
+        </div>
+
+        <div id="boss-settings" style="display:none">
+          <div class="card">
+            <div class="card-title">⚙️ 회사 설정</div>
+            <div class="form-group">
+              <label>일하는 방식</label>
+              <select id="work-style-change">
+                <option value="1">1. 전원 채굴</option>
+                <option value="2">2. 전원 판매</option>
+                <option value="3">3. 전원 생산 (B2B)</option>
+                <option value="4">4. 사장 판매 / 직원 채굴</option>
+                <option value="5">5. 사장 채굴 / 직원 재고정리</option>
+                <option value="6">6. 사장 채굴 / 직원 생산</option>
+              </select>
+              <button class="btn btn-sm" onclick="changeWorkStyle()">변경</button>
+            </div>
+            <div class="form-group">
+              <label>월급 설정 (최저임금 이상)</label>
+              <input type="number" id="salary-input" placeholder="월급 입력">
+              <button class="btn btn-sm" onclick="setSalary()">설정</button>
+            </div>
+            <hr class="divider">
+            <button class="btn btn-red btn-sm" onclick="registerUsedMarket()">♻️ 중고거래 회사 등록</button>
+            <hr class="divider">
+            <button class="btn btn-outline btn-sm" onclick="showMergerModal()">🤝 인수합병 제안</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 정부 페이지 ===== -->
+    <div id="page-government" class="page">
+      <div class="page-scroll">
+        <div class="card">
+          <div class="card-title">🏛️ 정부</div>
+          <div class="tabs">
+            <button class="tab active" onclick="switchGovTab('meeting')">회의</button>
+            <button class="tab" onclick="switchGovTab('election')">선거</button>
+            <button class="tab" onclick="switchGovTab('president')">대통령</button>
+            <button class="tab" onclick="switchGovTab('wage')">최저임금</button>
+          </div>
+          <div id="gov-meeting">
+            <div id="meeting-log"></div>
+            <div class="form-group mt8">
+              <input type="text" id="meeting-input" placeholder="발언 입력...">
+              <button class="btn btn-sm" onclick="sendMeetingMessage()">발언</button>
+            </div>
+          </div>
+          <div id="gov-election" style="display:none">
+            <div id="election-content"></div>
+          </div>
+          <div id="gov-president" style="display:none">
+            <div id="president-content"></div>
+          </div>
+          <div id="gov-wage" style="display:none">
+            <div id="wage-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end app-content -->
+
+  <!-- ===== 하단 탭 ===== -->
+  <div class="bottom-nav">
+    <button class="bottom-tab active" onclick="showPage('home')" id="tab-home">
+      <span class="tab-icon">🏠</span><span class="tab-label">홈</span>
+    </button>
+    <button class="bottom-tab" onclick="showPage('jobs')" id="tab-jobs">
+      <span class="tab-icon">💼</span><span class="tab-label">취업</span>
+    </button>
+    <button class="bottom-tab" onclick="showPage('leaderboard')" id="tab-leaderboard">
+      <span class="tab-icon">🏆</span><span class="tab-label">리더보드</span>
+    </button>
+    <button class="bottom-tab" onclick="showPage('market')" id="tab-market">
+      <span class="tab-icon">🛒</span><span class="tab-label">마트</span>
+    </button>
+    <button class="bottom-tab" onclick="showPage('mypage')" id="tab-mypage">
+      <span class="tab-icon">👤</span><span class="tab-label">마이</span>
+    </button>
+  </div>
+
+</div><!-- end app-screen -->
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-box">
+    <div class="modal-title" id="modal-title">제목</div>
+    <div id="modal-body"></div>
+    <div class="modal-btns" id="modal-btns">
+      <button class="btn btn-outline btn-sm" onclick="closeModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 알림 토스트 -->
+<div id="toast" class="toast"></div>
+
+<!-- Scripts -->
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/auth.js"></script>
+<script type="module" src="js/app.js"></script>
+<script type="module" src="js/company.js"></script>
+<script type="module" src="js/market.js"></script>
+<script type="module" src="js/government.js"></script>
+<script type="module" src="js/ui.js"></script>
+</body>
+</html>

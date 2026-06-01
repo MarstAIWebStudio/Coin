@@ -1,0 +1,184 @@
+/* ===== SCREENS ===== */
+#auth-screen, #setup-screen, #company-setup-screen, #app-screen { display: none; }
+
+/* ===== TOPBAR ===== */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: var(--topbar-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 4px;
+  color: var(--accent);
+}
+.topbar-center { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.topbar-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text2); }
+.topbar-user { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
+.balance-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--yellow);
+  background: #ffcc0015;
+  border: 1px solid #ffcc0030;
+  border-radius: 20px;
+  padding: 3px 10px;
+}
+.election-notice {
+  font-size: 11px;
+  color: var(--yellow);
+  background: #ffcc0015;
+  border: 1px solid #ffcc0030;
+  border-radius: 20px;
+  padding: 2px 10px;
+  animation: pulse 1s ease infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* ===== APP CONTENT ===== */
+.app-content { position: relative; }
+
+/* ===== PAGES ===== */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-h);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+}
+.bottom-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 8px 0;
+}
+.bottom-tab.active { color: var(--accent); }
+.bottom-tab.active .tab-icon { filter: drop-shadow(0 0 6px var(--accent)); }
+.tab-icon { font-size: 20px; }
+.tab-label { font-size: 10px; font-family: 'Noto Sans KR', sans-serif; letter-spacing: 0.5px; }
+
+/* ===== LEADERBOARD ===== */
+.lb-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.lb-rank {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: var(--text2);
+  width: 32px;
+  text-align: center;
+}
+.lb-rank.gold { color: #ffd700; }
+.lb-rank.silver { color: #c0c0c0; }
+.lb-rank.bronze { color: #cd7f32; }
+.lb-info { flex: 1; }
+.lb-name { font-size: 14px; font-weight: 700; }
+.lb-sub { font-size: 11px; color: var(--text2); }
+.lb-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--green); }
+
+/* ===== JOB LIST ===== */
+.job-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 8px;
+}
+.job-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.job-company { font-size: 14px; font-weight: 700; }
+.job-sector { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.job-btns { display: flex; gap: 6px; }
+
+/* ===== EXCHANGE ===== */
+.exchange-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+.exchange-coin { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; }
+.exchange-price { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--accent); }
+.exchange-change { font-size: 11px; }
+.exchange-change.up { color: var(--green); }
+.exchange-change.down { color: var(--red); }
+.exchange-btns { display: flex; gap: 4px; }
+
+/* ===== MARKET ITEMS ===== */
+.market-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.market-item-info .item-name { font-size: 14px; font-weight: 700; }
+.market-item-info .item-company { font-size: 11px; color: var(--text2); }
+.market-item-right { text-align: right; }
+.market-item-price { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--yellow); }
+
+/* ===== INVENTORY ===== */
+.inv-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+.inv-name { font-size: 13px; font-weight: 700; }
+.inv-qty { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text2); }
+.inv-btns { display: flex; gap: 4px; }
+
+/* ===== PROMO BANNER ===== */
+.promo-banner {
+  background: linear-gradient(135deg, #ffcc0020, #ff336620);
+  border: 1px solid #ffcc0040;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+  text-align: center;
+  animation: promoPulse 2s ease infinite;
+}
+@keyframes promoPulse { 0%,100%{border-color:#ffcc0040} 50%{border-color:#ffcc00} }
+.promo-company { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--yellow); letter-spacing: 2px; }
+.promo-msg { font-size: 12px; color: var(--text2); }
